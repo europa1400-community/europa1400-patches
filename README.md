@@ -1,25 +1,38 @@
-# europa1400-patches
+# 🩹 europa1400-patches
 
-Patch loader and patches for **Europa 1400: The Guild Gold** (*Die Gilde Gold*).
+Fixes for **Europa 1400: The Guild Gold** (*Die Gilde Gold*) that change no game file and can be removed at any time.
 
-- **Non-destructive:** no game file is replaced; the loader hooks into the running game and can be removed at any time.
-- **Modular:** every fix or extension is a patch you can switch on or off; patches declare which game builds they
-  support, and the loader refuses what does not fit your game.
-- **Host only (server patches):** only the player who hosts a multiplayer game needs the loader. Clients need nothing.
+| Patch | For whom | What it fixes |
+|---|---|---|
+| [Netfix](patches/netfix/README.md) | the player who **hosts** a multiplayer game | lost connections and "out of sync" over VPNs (Radmin, Hamachi, ZeroTier) and the Internet |
 
-Status: the loader for `server.dll` is ready (0.1.0); the first patch (network fixes) is in development.
-Supported build: German Gold 2.06 (GOG and Steam). Other versions: see [docs/builds.md](docs/builds.md).
+Works with Gold 2.06, German (GOG, Steam). Other versions follow.
 
 ## Install
 
-The recommended way is the [europa1400-manager](https://github.com/europa1400-community/europa1400-manager).
-Manually (see `INSTALL.txt` in the package):
+**Easiest:** with the [Europa 1400 Manager](https://europa1400-community.github.io/europa1400-manager/):
+`patch install netfix` or the *Patches* tab. Everything needed comes along.
 
-1. Extract `e1400patch.zip` into the game directory, then run `e1400patch\e1400patch.exe install`.
-2. Extract patch archives (e.g. `netfix.zip`) into the game directory.
-3. `e1400patch\e1400patch.exe status` shows what is active and whether it fits your game version.
+**By hand:**
 
-Remove: `e1400patch.exe uninstall`, then delete `e1400patch\` and `patches\`.
+1. Download [`e1400patch.zip`](https://github.com/europa1400-community/europa1400-patches/releases/latest/download/e1400patch.zip)
+   and [`netfix.zip`](https://github.com/europa1400-community/europa1400-patches/releases/latest/download/netfix.zip).
+2. Extract both into the game folder (the one with `game.ini`).
+3. Run `e1400patch\e1400patch.exe install` from a command prompt in the game folder.
+
+Check with `e1400patch\e1400patch.exe status`. Remove with `e1400patch\e1400patch.exe uninstall`, then delete the folders
+`e1400patch\` and `patches\`. Problems: [Discord](https://discord.gg/jB9HYY8DpT) or
+[issues](https://github.com/europa1400-community/europa1400-patches/issues), with the log
+`e1400patch\logs\e1400patch.log`.
+
+---
+
+## How it works
+
+The patch loader (`e1400patch`) puts itself between the game and the game's own server component: the game's
+`game.ini` is pointed to the loader's `server.dll`, which loads the original and lets patches hook into it while the
+game runs. Patches declare which game builds they support; the loader refuses what does not fit your game. Every patch
+can be switched on and off. Mods and patches for the game executable will use the same mechanism later.
 
 ## For developers
 
