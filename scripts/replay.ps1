@@ -6,6 +6,8 @@
     Needs the game (GAME_DIR) and recordings. Recordings contain save games and IP addresses and are never committed; the
     default ones come from the decompilation repository (DECOMP_DIR\bin\recordings, masks in DECOMP_DIR\tests\server).
     Without -Patches the stage's patches are disabled: the loader must then be fully transparent (byte-identical).
+    Patches that change how the server talks to WinSock (netfix) diverge from a recording by design; they are proven by
+    their own tests instead (tests/test_netfix.c).
 .EXAMPLE
     ./scripts/replay.ps1                         # session01, loader without patches
     ./scripts/replay.ps1 -Patches                # with the patches of build/stage/patches enabled
@@ -49,10 +51,10 @@ $gameIni = Join-Path $bin "game.ini"
 
 # test configuration of the loader: patches off unless -Patches, log next to the build
 $config = Join-Path $root "$BuildDir\replay-e1400patch.ini"
-Set-Content $config "[loader]`r`n"
+Set-Content $config "[loader]`r`n[patches]"
 if (-not $Patches) {
     Get-ChildItem (Join-Path $stage "patches") -Directory -ErrorAction SilentlyContinue | ForEach-Object {
-        Add-Content $config "[patches]`r`n$($_.Name)=0"
+        Add-Content $config "$($_.Name)=0"
     }
 }
 $env:E1400PATCH_CONFIG = $config

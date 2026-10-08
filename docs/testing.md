@@ -18,7 +18,7 @@ multiplayer session. `e1400replay` feeds the inputs back and compares every send
 
 ```powershell
 ./scripts/replay.ps1             # loader without patches: must be byte-identical to the original
-./scripts/replay.ps1 -Patches    # with the staged patches
+./scripts/replay.ps1 -Patches    # with the staged patches (netfix diverges by design, see patches/netfix)
 ./scripts/replay.ps1 -Original   # baseline: the original alone
 ```
 

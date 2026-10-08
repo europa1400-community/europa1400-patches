@@ -3,3 +3,7 @@
 One folder per patch: `patch.ini` (manifest), sources, `CMakeLists.txt` (`e1400_add_patch(<id> SOURCES ...)`), and a short
 README describing what the original does wrong and how the patch was tested. Create one with
 `./scripts/new-patch.ps1 <id>`; see [../docs/patch-authoring.md](../docs/patch-authoring.md).
+
+| Patch | Target | What it fixes |
+|---|---|---|
+| [netfix](netfix/README.md) | server (host only) | messages split by VPN/Internet connections break the session; buffer overrun on invalid lengths; Nagle delay |

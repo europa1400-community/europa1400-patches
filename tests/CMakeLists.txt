@@ -24,3 +24,17 @@ add_test(NAME core
         $<TARGET_FILE:fixture_patch>
         $<TARGET_FILE:fixture_failing_patch>
         "${CMAKE_BINARY_DIR}/test-work")
+
+# netfix over loopback TCP: fixture_reader stands in for server.dll (same recv call pattern)
+add_library(fixture_reader SHARED fixture_reader.c)
+target_link_libraries(fixture_reader PRIVATE ws2_32)
+set_target_properties(fixture_reader PROPERTIES PREFIX "")
+add_executable(test_netfix test_netfix.c)
+target_link_libraries(test_netfix PRIVATE ws2_32)
+add_dependencies(test_netfix e1400patch_loader fixture_reader patch_netfix)
+add_test(NAME netfix
+    COMMAND test_netfix
+        $<TARGET_FILE:e1400patch_loader>
+        $<TARGET_FILE:fixture_reader>
+        $<TARGET_FILE:patch_netfix>
+        "${CMAKE_BINARY_DIR}/test-work")
