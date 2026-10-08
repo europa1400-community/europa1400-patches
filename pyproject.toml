@@ -1,0 +1,12 @@
+[project]
+name = "europa1400-patches-tools"
+version = "0.0.0"
+description = "Development tools of europa1400-patches (build tables, packaging). Not shipped."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120

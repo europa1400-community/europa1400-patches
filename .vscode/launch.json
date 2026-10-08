@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to the game (host)",
+      "type": "cppvsdbg",
+      "request": "attach",
+      "processId": "${command:pickProcess}",
+      "symbolSearchPath": "${workspaceFolder}/build/stage/e1400patch;${workspaceFolder}/build/stage/patches"
+    },
+    {
+      "name": "Debug core tests",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/bin/test_core.exe",
+      "args": [
+        "${workspaceFolder}/build/stage/e1400patch/e1400patch.dll",
+        "${workspaceFolder}/build/bin/fixture_target.dll",
+        "${workspaceFolder}/build/bin/fixture_patch.dll",
+        "${workspaceFolder}/build/bin/fixture_failing_patch.dll",
+        "${workspaceFolder}/build/test-work"
+      ],
+      "cwd": "${workspaceFolder}/build/bin",
+      "preLaunchTask": "Build"
+    }
+  ]
+}

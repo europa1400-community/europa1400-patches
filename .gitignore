@@ -1,0 +1,23 @@
+# build output
+/build/
+/build-*/
+/dist/
+/out/
+
+# local configuration (paths to the game and the private decompilation)
+.env
+
+# tools
+.venv/
+__pycache__/
+*.pyc
+
+# never commit game files or session recordings (they contain save games and IP addresses)
+*.e1rec
+*.dll
+*.exe
+*.asi
+
+# editors
+.vs/
+*.user

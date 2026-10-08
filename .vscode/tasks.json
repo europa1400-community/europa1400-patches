@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "options": { "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"] } },
+  "tasks": [
+    { "label": "Setup", "type": "shell", "command": "./scripts/setup.ps1", "problemMatcher": [] },
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "./scripts/build.ps1",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "Test",
+      "type": "shell",
+      "command": "./scripts/build.ps1 -Test",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": ["$msCompile"]
+    },
+    { "label": "Check repository", "type": "shell", "command": "uv run tools/check_repo.py", "problemMatcher": [] },
+    { "label": "Package release", "type": "shell", "command": "uv run tools/package.py", "dependsOn": "Build", "problemMatcher": [] },
+    { "label": "Install into game", "type": "shell", "command": "./scripts/install-dev.ps1", "dependsOn": "Build", "problemMatcher": [] },
+    { "label": "Remove from game", "type": "shell", "command": "./scripts/install-dev.ps1 -Uninstall", "problemMatcher": [] },
+    {
+      "label": "Replay session (loader only)",
+      "type": "shell",
+      "command": "./scripts/replay.ps1",
+      "dependsOn": "Build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Replay session (with patches)",
+      "type": "shell",
+      "command": "./scripts/replay.ps1 -Patches",
+      "dependsOn": "Build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run game",
+      "type": "shell",
+      "command": "Get-Content .env | Where-Object { $_ -match '^(GAME_DIR|GAME_EXE)=(.*)$' } | ForEach-Object { Set-Variable $matches[1] $matches[2] }; Start-Process -WorkingDirectory $GAME_DIR (Join-Path $GAME_DIR $GAME_EXE)",
+      "problemMatcher": []
+    },
+    {
+      "label": "Show loader log",
+      "type": "shell",
+      "command": "Get-Content .env | Where-Object { $_ -match '^GAME_DIR=(.*)$' } | ForEach-Object { Get-Content -Tail 60 (Join-Path $matches[1] 'e1400patch\\logs\\e1400patch.log') }",
+      "problemMatcher": []
+    },
+    {
+      "label": "New patch",
+      "type": "shell",
+      "command": "./scripts/new-patch.ps1 ${input:patchId} -Name '${input:patchName}'",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    { "id": "patchId", "type": "promptString", "description": "Patch id (lowercase, e.g. netfix)" },
+    { "id": "patchName", "type": "promptString", "description": "Display name" }
+  ]
+}

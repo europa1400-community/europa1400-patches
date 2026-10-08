@@ -1,0 +1,39 @@
+name: Release
+
+# Push a tag v<VERSION> (VERSION file) to publish the loader and every patch as release assets. The unversioned asset
+# names (e1400patch.zip, <patch>.zip) are the stable "latest" links used by europa1400-database.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: e1400patch-${{ github.sha }}
+          path: dist
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '$0 ~ "^## \\[?"v"\\]?" {on=1; next} /^## / && on {exit} on' CHANGELOG.md > notes.md
+          test -s notes.md || echo "See CHANGELOG.md" > notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: notes.md
+          files: |
+            dist/*.zip
+            dist/release.json
+            dist/SHA256SUMS.txt

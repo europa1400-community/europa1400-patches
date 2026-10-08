@@ -1,0 +1,12 @@
+{
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": true,
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.cStandard": "c17",
+  "files.associations": { "*.ini": "ini", "*.e1rec": "plaintext" },
+  "files.exclude": { "build*/": false, ".venv/": true },
+  "search.exclude": { "build*/": true, "dist/": true, "vendor/": true, ".venv/": true },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "[c]": { "editor.formatOnSave": false, "editor.rulers": [128] },
+  "[python]": { "editor.defaultFormatter": "charliermarsh.ruff", "editor.rulers": [120] }
+}

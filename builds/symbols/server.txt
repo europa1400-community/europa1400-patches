@@ -1,0 +1,34 @@
+# Functions of server.dll that patches may address by name. One name per line, as in the decompilation's symbols.
+# Adding a name here and running tools/build_table.py refreshes every build table of the target.
+
+# lifecycle
+srv_ThreadMain
+srv_InitServer
+srv_InitSockets
+srv_Cleanup
+srv_AnnounceSession
+
+# connections and the message pump
+srv_AcceptConnection
+srv_DropClient
+srv_RecvFromClient
+srv_SendPending
+srv_ProcessClientInput
+srv_SendQueuedCommands
+srv_QueueIncoming
+srv_QueueCommand
+srv_QueueRelease
+srv_DispatchIncoming
+srv_LogWinsockError
+srv_CommandSize
+srv_CheckTransaction
+
+# lobby
+srv_lobby_get_participants
+srv_lobby_set_status
+lb_ExPlayerHasJoined
+srv_lobby_begin_transfer
+srv_lobby_set_profile
+srv_lobby_get_profile
+srv_lobby_route_message
+lb_ExLobbyServerCommand

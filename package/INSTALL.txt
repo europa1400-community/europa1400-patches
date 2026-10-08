@@ -1,0 +1,21 @@
+e1400patch - patch loader for Europa 1400: The Guild (Die Gilde) Gold
+======================================================================
+
+The europa1400-manager installs, updates and removes the loader and its patches for you. Manual installation:
+
+1. Extract e1400patch.zip into the game directory (the folder with the game's .exe and game.ini).
+   You now have <game>\e1400patch\.
+2. Run e1400patch\e1400patch.exe install (double-click opens and closes a console; better: run it from a command prompt
+   inside the e1400patch folder). It points game.ini [Network] Server= to e1400patch\server.dll and remembers the
+   previous entry. No game file is overwritten.
+3. Extract patch archives (e.g. netfix.zip) into the game directory as well: <game>\patches\<id>\.
+4. Host a multiplayer game as usual. Only the hosting PC needs the loader; clients need nothing.
+
+Check:       e1400patch.exe status        (installation, game build, patches and whether they fit this game version)
+Switch off:  e1400patch.exe disable <id>  (or delete <game>\patches\<id>\)
+Remove:      e1400patch.exe uninstall     (restores game.ini), then delete e1400patch\ and patches\
+
+Log: e1400patch\logs\e1400patch.log. Settings: e1400patch\e1400patch.ini (created on install from
+e1400patch.ini.default).
+
+Source, documentation and issues: https://github.com/europa1400-community/europa1400-patches

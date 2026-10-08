@@ -1,0 +1,30 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "msvc-x86",
+      "displayName": "MSVC x86 (RelWithDebInfo)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "architecture": { "value": "x86", "strategy": "external" },
+      "toolset": { "value": "host=x64", "strategy": "external" },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo", "CMAKE_C_COMPILER": "cl" },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "msvc-x86-debug",
+      "displayName": "MSVC x86 (Debug)",
+      "inherits": "msvc-x86",
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "msvc-x86", "configurePreset": "msvc-x86" },
+    { "name": "msvc-x86-debug", "configurePreset": "msvc-x86-debug" }
+  ],
+  "testPresets": [
+    { "name": "msvc-x86", "configurePreset": "msvc-x86", "output": { "outputOnFailure": true } },
+    { "name": "msvc-x86-debug", "configurePreset": "msvc-x86-debug", "output": { "outputOnFailure": true } }
+  ]
+}
