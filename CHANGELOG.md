@@ -1,8 +1,7 @@
 # Changelog
 
-All notable changes. Versions: loader in `VERSION`, patches in their `patch.ini`.
-
-## [Unreleased]
+Releases after 0.1.0: see the [GitHub releases](https://github.com/europa1400-community/europa1400-patches/releases)
+(notes generated from the commits). Versions: loader = release tag, patches in their `patch.ini`.
 
 ## [0.1.0]
 

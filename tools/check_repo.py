@@ -2,7 +2,6 @@
 
 - no game files or recordings: no tracked binaries (.dll/.exe/.e1rec/...), no file above 1 MB outside vendor/
 - no large byte arrays in sources (a hint for copied game data); see docs/legal.md
-- VERSION is semantic; on a tag build the tag must be v<VERSION>
 - build tables: complete [build] section, 64 hex digit sha256, well-formed symbols
 - patch manifests: id = folder, module = <id>.dll, api within the loader's version, known targets, every listed build
   exists, every declared symbol exists in every listed build of its target, requires/conflicts name known patches
@@ -13,7 +12,6 @@
 from __future__ import annotations
 
 import configparser
-import os
 import re
 import subprocess
 import sys
@@ -59,13 +57,6 @@ def main() -> int:
         if path.suffix.lower() in {".c", ".h", ".cpp", ".inc"}:
             if BYTE_ARRAY.search(path.read_text(encoding="utf-8", errors="replace")):
                 errors.append(f"{relative}: contains a large byte array (game data? see docs/legal.md)")
-
-    version = (ROOT / "VERSION").read_text().strip()
-    if not re.fullmatch(r"\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?", version):
-        errors.append(f"VERSION {version!r} is not semantic")
-    ref = os.environ.get("GITHUB_REF", "")
-    if ref.startswith("refs/tags/") and ref != f"refs/tags/v{version}":
-        errors.append(f"tag {ref} does not match VERSION {version}")
 
     builds: dict[str, tuple[str, set[str]]] = {}
     for path in sorted((ROOT / "builds").glob("*.ini")):

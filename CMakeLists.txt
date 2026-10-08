@@ -1,7 +1,25 @@
 cmake_minimum_required(VERSION 3.25)
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" E1400PATCH_VERSION)
-string(STRIP "${E1400PATCH_VERSION}" E1400PATCH_VERSION)
-project(e1400patch VERSION ${E1400PATCH_VERSION} LANGUAGES C)
+# Loader version: E1400PATCH_BUILD_VERSION (set by the release workflow), else the last release tag v<x.y.z> via
+# git describe (development builds carry the distance, e.g. 0.1.0-3-gabc1234), else 0.0.0. Read at configure time.
+set(E1400PATCH_VERSION "$ENV{E1400PATCH_BUILD_VERSION}")
+if(NOT E1400PATCH_VERSION)
+    find_package(Git QUIET)
+    if(GIT_FOUND)
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" describe --tags --match "v[0-9]*"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            OUTPUT_VARIABLE E1400PATCH_VERSION
+            OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+        string(REGEX REPLACE "^v" "" E1400PATCH_VERSION "${E1400PATCH_VERSION}")
+    endif()
+    if(NOT E1400PATCH_VERSION)
+        set(E1400PATCH_VERSION "0.0.0")
+    endif()
+endif()
+string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" E1400PATCH_NUMERIC_VERSION "${E1400PATCH_VERSION}")
+project(e1400patch VERSION ${E1400PATCH_NUMERIC_VERSION} LANGUAGES C)
+message(STATUS "e1400patch version ${E1400PATCH_VERSION}")
+file(WRITE "${CMAKE_BINARY_DIR}/version.txt" "${E1400PATCH_VERSION}\n") # read by tools/package.py
 
 # The game is a 32-bit process: everything that is loaded into it must be x86.
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -42,7 +60,7 @@ add_library(e1400patch_core STATIC
     src/core/builds.c
     src/core/manifest.c)
 target_include_directories(e1400patch_core PUBLIC include src/core)
-target_compile_definitions(e1400patch_core PUBLIC E1400PATCH_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(e1400patch_core PUBLIC E1400PATCH_VERSION="${E1400PATCH_VERSION}")
 target_link_libraries(e1400patch_core PUBLIC bcrypt)
 
 # Loader runtime: e1400patch.dll
