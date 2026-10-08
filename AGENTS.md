@@ -25,9 +25,10 @@ talk to the user in the user's language.
 - Behaviour must be proven: transparency of the loader with `./scripts/replay.ps1` (byte-identical to the original);
   fixes with dedicated tests (fault injection or new recordings), described in the patch's README/comments.
 - Game test: `./scripts/install-dev.ps1` (non-destructive), log in `<game>/e1400patch/logs/e1400patch.log`.
-- Patch API changes: append members to `E1400PatchApi`, bump `E1400_PATCH_API_VERSION`, keep old behaviour; document in
-  `CHANGELOG.md`.
-- Versions: `VERSION` (loader, semantic), `version=` per patch manifest. Release = tag `v<VERSION>` (CI publishes).
+- Patch API changes: append members to `E1400PatchApi`, bump `E1400_PATCH_API_VERSION`, keep old behaviour; describe it in
+  the `feat:` commit (it becomes the release notes).
+- Versions: the loader version comes from the release tag `v<x.y.z>` (git describe); `version=` per patch manifest.
+  Commits and PR titles use Conventional Commits; releases: Actions → Release → Run workflow (docs/development.md).
 
 ## Facts that are easy to get wrong
 

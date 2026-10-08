@@ -69,7 +69,7 @@ def main() -> int:
         return 1
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
-    version = (ROOT / "VERSION").read_text().strip()
+    version = (ROOT / args.build / "version.txt").read_text().strip()  # written by CMake
     release = {"version": version, "packages": []}
     written: list[Path] = []
 

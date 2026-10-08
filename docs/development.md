@@ -49,7 +49,14 @@ vendor/minhook/       MinHook (submodule)
 
 ## Releases
 
-1. Update `CHANGELOG.md` and the versions (`VERSION` for the loader, `version=` in changed patch manifests).
-2. Merge to `main`, tag `v<VERSION>` and push the tag. The release workflow builds, tests, packages and publishes
-   `e1400patch.zip`, one zip per patch, `release.json` and `SHA256SUMS.txt`.
+No secrets or personal tokens are needed.
+
+1. Merge the pull requests (squash, Conventional Commits title). Raise `version=` in the manifests of changed patches.
+2. GitHub: **Actions → Release → Run workflow** on `main`. semantic-release derives the loader version from the
+   commits since the last release (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE:` → major; without such
+   commits nothing is released). CI builds, tests and packages with that version; only then the tag `v<version>` and
+   the release with generated notes are created and `e1400patch.zip`, one zip per patch, `release.json` and
+   `SHA256SUMS.txt` are attached.
+
+Local builds take their version from `git describe` (e.g. `0.1.0-3-gabc1234` three commits after v0.1.0).
 3. The unversioned asset names are stable download links for europa1400-database.

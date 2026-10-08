@@ -1,39 +1,87 @@
 name: Release
 
-# Push a tag v<VERSION> (VERSION file) to publish the loader and every patch as release assets. The unversioned asset
-# names (e1400patch.zip, <patch>.zip) are the stable "latest" links used by europa1400-database.
+# Actions → Release → Run workflow (branch main). No secrets needed besides the automatic GITHUB_TOKEN.
+#
+# 1. semantic-release (dry run) derives the next loader version from the conventional commits since the last release
+#    (fix: → patch, feat: → minor, feat!:/BREAKING CHANGE → major; nothing releasable → the workflow ends here).
+# 2. CI builds, tests and packages with that version.
+# 3. Only then semantic-release creates the tag v<version> and the GitHub release with generated notes, and the
+#    packages are attached. The unversioned asset names (e1400patch.zip, <patch>.zip) are the stable "latest" links
+#    used by europa1400-database.
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency: release
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build:
-    uses: ./.github/workflows/ci.yml
-
-  release:
-    needs: build
+  version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # semantic-release checks that it could push the tag
+    outputs:
+      published: ${{ steps.next.outputs.new_release_published }}
+      version: ${{ steps.next.outputs.new_release_version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: next
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          dry_run: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.next.outputs.new_release_published }}" = "true" ]; then
+            echo "Releasing **v${{ steps.next.outputs.new_release_version }}**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No releasable commits (fix:/feat:) since the last release." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  build:
+    needs: version
+    if: needs.version.outputs.published == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # tag and release
+      issues: write # "released in" comments
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: release
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check version
+        if: steps.release.outputs.new_release_version != needs.version.outputs.version
+        run: |
+          echo "released '${{ steps.release.outputs.new_release_version }}', built '${{ needs.version.outputs.version }}'"
+          exit 1
 
       - uses: actions/download-artifact@v4
         with:
           name: e1400patch-${{ github.sha }}
           path: dist
 
-      - name: Release notes from CHANGELOG.md
+      - name: Attach packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v v="$version" '$0 ~ "^## \\[?"v"\\]?" {on=1; next} /^## / && on {exit} on' CHANGELOG.md > notes.md
-          test -s notes.md || echo "See CHANGELOG.md" > notes.md
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          body_path: notes.md
-          files: |
-            dist/*.zip
-            dist/release.json
-            dist/SHA256SUMS.txt
+          gh release upload "v${{ needs.version.outputs.version }}" dist/*.zip dist/release.json dist/SHA256SUMS.txt \
+            --repo "${{ github.repository }}"
