@@ -102,3 +102,7 @@ include(CTest)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
+
+# Monitorfix: proxy d3d8.dll for the game folder (not a loader patch; see src/shims/monitorfix)
+add_library(monitorfix SHARED src/shims/monitorfix/d3d8_proxy.c src/shims/monitorfix/d3d8.def)
+set_target_properties(monitorfix PROPERTIES OUTPUT_NAME d3d8 PREFIX "" RUNTIME_OUTPUT_DIRECTORY "${E1400_STAGE}/monitorfix" PDB_NAME monitorfix)
