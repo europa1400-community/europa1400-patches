@@ -1,0 +1,14 @@
+gfxfix - monitor choice and texture fix for Europa 1400: The Guild (Die Gilde) Gold
+===========================================================================
+
+The game remembers its Direct3D choice by the graphics card only, so on a PC with several monitors on one card it
+always starts on the last one. gfxfix is a small d3d8.dll that sits next to the game exe and shows the game
+exactly one monitor. It also reports power-of-two texture caps (pow2caps=1), which fixes cut-off interface
+graphics on modern graphics cards (the job of DxWrapper's SetPOW2Caps), so DxWrapper is not needed for that.
+
+Install: extract into the game directory (the folder with the game exe and game.ini): d3d8.dll, gfxfix.ini.
+Choose:  monitor=N in gfxfix.ini (1 = main display, 2 = second, ...; 0 = off). gfxfix.log (written next to
+         the dll at every start) lists the monitors and which number each one has.
+Remove:  delete d3d8.dll, gfxfix.ini and gfxfix.log.
+
+The europa1400-manager installs and configures it for you.

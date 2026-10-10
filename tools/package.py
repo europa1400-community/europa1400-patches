@@ -5,7 +5,7 @@ Every archive is meant to be extracted into the game directory:
     e1400patch.zip            e1400patch/  (loader, shim, tool, build tables, default configuration, licenses)
     <patch id>.zip            patches/<id>/ (manifest, module, data)
     <mod id>.zip              mods/<id>/
-    monitorfix.zip            d3d8.dll + monitorfix.ini for the game directory root (monitor choice)
+    gfxfix.zip            d3d8.dll + gfxfix.ini for the game directory root (monitor choice)
     e1400patch-symbols.zip    PDB files for crash analysis (not for players)
     release.json              machine readable list of the packages (for the database/manager)
     SHA256SUMS.txt
@@ -106,19 +106,19 @@ def main() -> int:
                 }
             )
 
-    monitorfix = stage / "monitorfix" / "d3d8.dll"
-    if monitorfix.exists():
+    gfxfix = stage / "gfxfix" / "d3d8.dll"
+    if gfxfix.exists():
         mf_version = version
 
-        def fill_monitorfix(archive: zipfile.ZipFile) -> None:
-            archive.write(monitorfix, "d3d8.dll")
-            archive.write(ROOT / "package" / "monitorfix.ini", "monitorfix.ini")
-            archive.write(ROOT / "package" / "MONITORFIX.txt", "MONITORFIX.txt")
-            archive.write(ROOT / "LICENSE", "MONITORFIX-LICENSE.txt")
+        def fill_gfxfix(archive: zipfile.ZipFile) -> None:
+            archive.write(gfxfix, "d3d8.dll")
+            archive.write(ROOT / "package" / "gfxfix.ini", "gfxfix.ini")
+            archive.write(ROOT / "package" / "GFXFIX.txt", "GFXFIX.txt")
+            archive.write(ROOT / "LICENSE", "GFXFIX-LICENSE.txt")
 
-        written += write_zip(out, "monitorfix", mf_version, fill_monitorfix)
+        written += write_zip(out, "gfxfix", mf_version, fill_gfxfix)
         release["packages"].append(
-            {"id": "monitorfix", "kind": "shim", "name": "monitorfix", "version": mf_version, "archive": "monitorfix.zip"}
+            {"id": "gfxfix", "kind": "shim", "name": "gfxfix", "version": mf_version, "archive": "gfxfix.zip"}
         )
 
     symbols = out / f"e1400patch-symbols-{version}.zip"

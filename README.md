@@ -5,7 +5,7 @@ Fixes for **Europa 1400: The Guild Gold** (*Die Gilde Gold*) that change no game
 | Patch | For whom | What it fixes |
 |---|---|---|
 | [Netfix](patches/netfix/README.md) | the player who **hosts** a multiplayer game | lost connections and "out of sync" over VPNs (Radmin, Hamachi, ZeroTier) and the Internet |
-| [Monitorfix](package/MONITORFIX.txt) | everyone with several monitors | the game always starts on the wrong (last) monitor; choose the monitor in `monitorfix.ini` (a `d3d8.dll` in the game folder, not a loader patch) |
+| [Gfxfix](package/GFXFIX.txt) | everyone with several monitors | the game always starts on the wrong (last) monitor and cut-off interface graphics; choose the monitor in `gfxfix.ini` (a `d3d8.dll` in the game folder, not a loader patch) |
 
 Works with Gold 2.06, German (GOG, Steam). Other versions follow.
 

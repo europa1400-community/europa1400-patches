@@ -1,17 +1,17 @@
-/* Monitorfix: proxy d3d8.dll for The Guild Gold.
+/* Gfxfix: proxy d3d8.dll for The Guild Gold.
  *
  * The game picks its Direct3D 8 adapter by comparing only the device GUID stored in
  * HKCU\Software\Ahead Entertainment\d8_vesa with every adapter and keeps the LAST match. Two monitors on one graphics
  * card share one GUID, so the game always ends up on the second monitor, whatever the start dialog was told.
  *
  * This proxy sits in the game folder (the game loads d3d8.dll from there first), loads the real d3d8.dll and shows the game
- * exactly ONE adapter: the one chosen in monitorfix.ini. The game then cannot pick a wrong one. Every call that carries an
+ * exactly ONE adapter: the one chosen in gfxfix.ini. The game then cannot pick a wrong one. Every call that carries an
  * adapter number is shifted to the real adapter. monitor=0 (or no ini) leaves everything untouched.
  *
- * monitorfix.ini (next to d3d8.dll):
- *     [monitorfix]
+ * gfxfix.ini (next to d3d8.dll):
+ *     [gfxfix]
  *     monitor=2        ; 1 = first monitor (the Windows main display), 2 = second, ...; 0 = off
- * monitorfix.log lists the adapters on every start, which tells which number is which screen. */
+ * gfxfix.log lists the adapters on every start, which tells which number is which screen. */
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -40,6 +40,8 @@ struct Wrapper {
     const void *const *vtbl;
     IDirect3D8Real *real;
     UINT first; /* real adapter that is shown as adapter 0 */
+    BOOL single; /* show exactly one adapter */
+    BOOL pow2; /* report power-of-two texture caps */
 };
 
 static HMODULE g_real_module;
@@ -53,7 +55,7 @@ static void note(const char *format, ...)
     va_start(args, format);
     vsnprintf(line, sizeof(line), format, args);
     va_end(args);
-    snprintf(path, sizeof(path), "%smonitorfix.log", g_dir);
+    snprintf(path, sizeof(path), "%sgfxfix.log", g_dir);
     file = fopen(path, "a");
     if (file) {
         fprintf(file, "%s\n", line);
@@ -95,7 +97,7 @@ static HRESULT WINAPI w_registersw(Wrapper *w, void *fn)
 }
 static UINT WINAPI w_getcount(Wrapper *w)
 {
-    (void)w;
+    if (!w->single) return ((Fn_Uint)w->real->vtbl[ST_GETCOUNT])(w->real);
     return 1;
 }
 static HRESULT WINAPI w_getident(Wrapper *w, UINT a, DWORD flags, AdapterIdentifier8 *id)
@@ -109,7 +111,14 @@ static HRESULT WINAPI w_checktype(Wrapper *w, UINT a, int t, int d, int b, BOOL 
 static HRESULT WINAPI w_checkformat(Wrapper *w, UINT a, int t, int af, DWORD u, int rt, int cf) { return ((Fn_Format)w->real->vtbl[ST_CHECKFORMAT])(w->real, a + w->first, t, af, u, rt, cf); }
 static HRESULT WINAPI w_checkms(Wrapper *w, UINT a, int t, int sf, BOOL win, int ms) { return ((Fn_Ms)w->real->vtbl[ST_CHECKMS])(w->real, a + w->first, t, sf, win, ms); }
 static HRESULT WINAPI w_checkds(Wrapper *w, UINT a, int t, int af, int rf, int df) { return ((Fn_Ds)w->real->vtbl[ST_CHECKDS])(w->real, a + w->first, t, af, rf, df); }
-static HRESULT WINAPI w_getcaps(Wrapper *w, UINT a, int t, void *caps) { return ((Fn_Caps)w->real->vtbl[ST_GETCAPS])(w->real, a + w->first, t, caps); }
+static HRESULT WINAPI w_getcaps(Wrapper *w, UINT a, int t, void *caps)
+{
+    HRESULT hr = ((Fn_Caps)w->real->vtbl[ST_GETCAPS])(w->real, a + w->first, t, caps);
+    /* D3DCAPS8.TextureCaps (offset 60): modern cards report arbitrary texture sizes, which the game cannot handle
+       (cut-off interface graphics); claim POW2 and NONPOW2CONDITIONAL so that it pads textures. */
+    if (hr == 0 && w->pow2) *(DWORD *)((BYTE *)caps + 60) |= 0x2 | 0x100;
+    return hr;
+}
 static HMONITOR WINAPI w_getmonitor(Wrapper *w, UINT a) { return ((Fn_Monitor)w->real->vtbl[ST_GETMONITOR])(w->real, a + w->first); }
 static HRESULT WINAPI w_createdevice(Wrapper *w, UINT a, int t, HWND focus, DWORD flags, void *params, void **device)
 {
@@ -121,11 +130,11 @@ static const void *const g_wrapper_vtbl[16] = {
     w_query, w_addref, w_release, w_registersw, w_getcount, w_getident, w_modecount, w_enummodes,
     w_displaymode, w_checktype, w_checkformat, w_checkms, w_checkds, w_getcaps, w_getmonitor, w_createdevice};
 
-static int read_setting(void)
+static int read_int(const char *key, int fallback)
 {
     char path[MAX_PATH];
-    snprintf(path, sizeof(path), "%smonitorfix.ini", g_dir);
-    return (int)GetPrivateProfileIntA("monitorfix", "monitor", 0, path);
+    snprintf(path, sizeof(path), "%sgfxfix.ini", g_dir);
+    return (int)GetPrivateProfileIntA("gfxfix", key, fallback, path);
 }
 
 typedef void *(WINAPI *CreateFn)(UINT);
@@ -153,16 +162,17 @@ __declspec(dllexport) void *WINAPI Direct3DCreate8(UINT sdk_version)
     IDirect3D8Real *real;
     Wrapper *w;
     UINT count;
-    int wanted;
+    int wanted, pow2;
     if (!g_real_module) return NULL;
     create = (CreateFn)GetProcAddress(g_real_module, "Direct3DCreate8");
     real = create ? (IDirect3D8Real *)create(sdk_version) : NULL;
     if (!real) return NULL;
     count = ((Fn_Uint)real->vtbl[ST_GETCOUNT])(real);
-    wanted = read_setting();
+    wanted = read_int("monitor", 0);
     note("Direct3DCreate8: %u adapter(s), monitor=%d", count, wanted);
     log_adapters(real, count);
-    if (wanted <= 0 || count <= 1) return real; /* nothing to choose */
+    pow2 = read_int("pow2caps", 1) != 0;
+    if (wanted <= 0 && !pow2) return real; /* nothing to do */
     if ((UINT)wanted > count) {
         note("monitor=%d does not exist, using monitor 1", wanted);
         wanted = 1;
@@ -171,7 +181,9 @@ __declspec(dllexport) void *WINAPI Direct3DCreate8(UINT sdk_version)
     if (!w) return real;
     w->vtbl = g_wrapper_vtbl;
     w->real = real;
-    w->first = (UINT)wanted - 1;
+    w->first = wanted > 0 ? (UINT)wanted - 1 : 0;
+    w->single = wanted > 0 && count > 1;
+    w->pow2 = pow2;
     return w;
 }
 
