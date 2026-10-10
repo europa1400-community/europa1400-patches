@@ -1,17 +1,17 @@
-/* Monitorfix: proxy d3d8.dll for The Guild Gold.
+/* Gfxfix: proxy d3d8.dll for The Guild Gold.
  *
  * The game picks its Direct3D 8 adapter by comparing only the device GUID stored in
  * HKCU\Software\Ahead Entertainment\d8_vesa with every adapter and keeps the LAST match. Two monitors on one graphics
  * card share one GUID, so the game always ends up on the second monitor, whatever the start dialog was told.
  *
  * This proxy sits in the game folder (the game loads d3d8.dll from there first), loads the real d3d8.dll and shows the game
- * exactly ONE adapter: the one chosen in monitorfix.ini. The game then cannot pick a wrong one. Every call that carries an
+ * exactly ONE adapter: the one chosen in gfxfix.ini. The game then cannot pick a wrong one. Every call that carries an
  * adapter number is shifted to the real adapter. monitor=0 (or no ini) leaves everything untouched.
  *
- * monitorfix.ini (next to d3d8.dll):
- *     [monitorfix]
+ * gfxfix.ini (next to d3d8.dll):
+ *     [gfxfix]
  *     monitor=2        ; 1 = first monitor (the Windows main display), 2 = second, ...; 0 = off
- * monitorfix.log lists the adapters on every start, which tells which number is which screen. */
+ * gfxfix.log lists the adapters on every start, which tells which number is which screen. */
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,7 +55,7 @@ static void note(const char *format, ...)
     va_start(args, format);
     vsnprintf(line, sizeof(line), format, args);
     va_end(args);
-    snprintf(path, sizeof(path), "%smonitorfix.log", g_dir);
+    snprintf(path, sizeof(path), "%sgfxfix.log", g_dir);
     file = fopen(path, "a");
     if (file) {
         fprintf(file, "%s\n", line);
@@ -133,8 +133,8 @@ static const void *const g_wrapper_vtbl[16] = {
 static int read_int(const char *key, int fallback)
 {
     char path[MAX_PATH];
-    snprintf(path, sizeof(path), "%smonitorfix.ini", g_dir);
-    return (int)GetPrivateProfileIntA("monitorfix", key, fallback, path);
+    snprintf(path, sizeof(path), "%sgfxfix.ini", g_dir);
+    return (int)GetPrivateProfileIntA("gfxfix", key, fallback, path);
 }
 
 typedef void *(WINAPI *CreateFn)(UINT);
